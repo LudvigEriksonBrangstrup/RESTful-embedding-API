@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Highlighter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        form {
+            margin-bottom: 30px;
+        }
+        input[type="text"], input[type="submit"], textarea {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+        }
+        input[type="submit"] {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        .no-results {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Highlighter</h1>
+        <form id="uploadForm">
+            <label for="file">File:</label><br>
+            <input type="file" id="file" name="file"><br>
+            <input type="submit" value="Upload">
+        </form>
+
+
+        <form id="textUploadForm">
+            <label for="text">Text:</label><br>
+            <textarea id="text" name="text" rows="4" cols="50"></textarea><br>
+            <input type="submit" value="Upload">
+        </form>
+
+        <form id="highlightForm">
+            <label for="document_name">Document:</label><br>
+            <select id="document_name" name="document_name"></select><br>
+            <label for="search_word">Word to Highlight:</label><br>
+            <input type="text" id="search_word" name="search_word"><br><br>
+            <input type="submit" value="Highlight">
+        </form>
+        <div class="result">
+            <h2>Result:</h2>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch the list of documents when the page loads
+        // Fetch the list of documents
+        async function fetchDocuments() {
+            const response = await fetch('http://localhost:8080/documents/');
+            const data = await response.json();
+            const select = document.getElementById('document_name');
+            // Clear the current options
+            select.innerHTML = '';
+            for (const document_name of data.documents) {
+                const option = document.createElement('option');
+                option.value = option.text = document_name;
+                select.add(option);
+            }
+        }
+
+        // Fetch the list of documents when the page loads
+        window.onload = fetchDocuments;
+
+
+
+        document.getElementById('textUploadForm').onsubmit = async function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+            const text = document.getElementById('text').value;
+            const response = await fetch('http://localhost:8080/text_upload/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({text})
+            });
+            const result = await response.json();
+            await fetchDocuments();
+            console.log(result);  // Log the response from the /upload/ endpoint
+        };
+        
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+            if (file) {
+                // If a file was selected, send it as form data
+                const formData = new FormData();
+                formData.append('file', file);
+                const response = await fetch('http://localhost:8080/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                //console.log(result);  // Log the response from the /upload/ endpoint
+                fetchDocuments();
+            } else {
+                alert('No file selected');
+            }
+        });
+        
+        document.getElementById('highlightForm').onsubmit = async function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+            const filename = document.getElementById('document_name').value;
+            const search_word = document.getElementById('search_word').value;
+            const response = await fetch('http://localhost:8080/highlight/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename: filename, search_word: search_word })
+            });
+
+            const contentType = response.headers.get('content-type');
+            if (contentType === 'application/pdf') {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a); // we need to append the element to the dom -> invisible
+                a.click();
+                a.remove();  //afterwards we remove the element again
+            } else  {
+                const data = await response.text();
+                document.getElementById('result').innerHTML = data;
+            } 
+        };
+
+        
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,12 @@
+fastapi==0.109.2
+uvicorn==0.27.1
+pydantic==1.10.14
+llama-index==0.9.44
+chromadb==0.4.22
+transformers==4.37.2
+langchain==0.1.6
+torch==2.2.0
+Werkzeug==3.0.1
+PyMuPDF==1.23.21
+python-multipart==0.0.9
+pypdf==4.0.1
