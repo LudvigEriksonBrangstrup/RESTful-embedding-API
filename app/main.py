@@ -106,7 +106,10 @@ def initialize_agent_components():
     return model_sw3, tokenizer_sw3, device
 
 def improve_query_with_agent(initial_text_results, query_str, model_sw3, tokenizer_sw3, device): 
-    """ Improves a query based on initial text results using a language model.
+    """ 
+    NOTE this is a experimental function and have not been implemented throughly.
+    
+    Improves a query based on initial text results using a language model.
     This function takes a list of initial text results and a query string as input.
     It generates a prompt based on the text results and the query, and feeds the prompt to a language model.
     The model generates a response, which is then cleaned and returned as the improved query.
@@ -121,8 +124,7 @@ def improve_query_with_agent(initial_text_results, query_str, model_sw3, tokeniz
     Returns:
     str: The improved query.
     """
-
-        
+   
     document_context = ""
     for result in initial_text_results:
         document_context += result.text
@@ -435,7 +437,7 @@ print("=========================================================================
 
 app = FastAPI()
 
-# New CORS middleware configuration
+# Enabeling acess to the API from any origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins
@@ -444,7 +446,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-#TODO make sure that the API is easy to use without the Front end
+
   
 
 
