@@ -45,6 +45,9 @@ docker run -d --name myfastapi -p 8000:8000 myapi
 
 You can view the API documentation by navigating to the directory and opening the `index.html` file in your web browser.
 
+## Using Agent for Query Improvement
+
+By setting `use_agent = True`, you can enable the feature to improve queries using an agent. However, please note that the performance varies and may require tweaking of the prompt for optimal results.
 
 ## API Endpoints
 

@@ -4,6 +4,7 @@ import re
 import tempfile
 import uuid
 import shutil
+import torch
 
 from fastapi import FastAPI, HTTPException, UploadFile, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -90,8 +91,6 @@ def initialize_agent_components():
     - tokenizer_sw3 (transformers.PreTrainedTokenizer): The tokenizer.
     - device (torch.device): The device to run the model on.
     """
-    import torch
-    import re
     from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
     # Initialize Variables
@@ -424,7 +423,7 @@ service_context, text_splitter, chroma_collection, storage_context, vector_store
 
 document_list = get_unique_document_names(chroma_collection)
 
-use_agent = True
+use_agent = False
 
 if use_agent:
     model_sw3, tokenizer_sw3, device = initialize_agent_components()
