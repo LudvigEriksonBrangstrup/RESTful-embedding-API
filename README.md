@@ -39,30 +39,41 @@ python main.py
 - **Endpoint:** `/file_upload/`
 - **Method:** `POST`
 - **Description:** Uploads a document (text or PDF).
-- **Request:** Multipart form data with the file.
+- **Request:** Multipart form data with the file. The file field should be named `file`.
 - **Curl Example:** 
-
 ```bash
 curl -X POST -F 'file=@examplefile.pdf' http://localhost:8000/file_upload/
 ```
 
 
-### Upload Text for Indexing
+### Upload Text
 - **Endpoint:** `/text_upload/`
 - **Method:** `POST`
-- **Description:** Submits text for indexing.
-- **Request Body:** `{ "text": "your text here" }`
+- **Description:** Uploads a document as raw text.
+- **Request:** JSON payload with the `text` field containing the text you want to upload.
+- **Curl Example:** 
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"text":"your text here"}' http://localhost:8000/text_upload/
+```
 
-### Search and Highlight
+### Highlight Text
 - **Endpoint:** `/highlight/`
 - **Method:** `GET`
-- **Description:** Searches for a word in the specified document and highlights occurrences.
-- **Parameters:** `filename` (the file to search), `search_word` (the word to search for).
+- **Description:** Uses embeddings to find the best match to the search words in a document and returns the document with the matched words highlighted.
+- **Request:** Query parameters `filename` (the name of the file to search) and `search_word` (the words to find the best match for).
+- **Curl Example:** 
+```bash
+curl "http://localhost:8000/highlight/?filename=your_filename&search_word=your_search_word"
+```
 
-### Get Document List
+### Get Documents
 - **Endpoint:** `/documents/`
 - **Method:** `GET`
-- **Description:** Retrieves a list of all documents available in the system.
+- **Description:** Returns a list of all available documents.
+- **Curl Example:** 
+```bash
+curl http://localhost:8000/documents/
+```
 
 ## Error Handling
 

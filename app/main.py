@@ -269,7 +269,9 @@ async def create_upload_file(file: UploadFile):
     index_document(document_path, embed_model, storage_context, text_splitter, service_context)
     return {"status": "Text uploaded successfully", "filename": filename}
 
-
+class TextUpload(BaseModel):
+    text: str
+    
 @app.post("/text_upload/")
 async def upload_text(payload: TextUpload):
     print("starting upload")
