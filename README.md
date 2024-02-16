@@ -1,13 +1,12 @@
 # Document Management REST API
 
-This Document Management REST API provides functionality for uploading, indexing, and searching within text documents and PDFs. It supports uploading documents in text or PDF format, submitting text for indexing, and searching for specific words with options to highlight occurrences in the documents.
+This Document Management REST API provides functionality for uploading, indexing, and searching within text documents and PDFs. It uses embeddings to find relevant parts of texts and highlights those parts. It supports uploading documents in text or PDF format, submitting text for indexing, and searching for specific words with options to highlight occurrences in the documents.
 
 ## Features
 
 - **Document Upload:** Support for uploading text and PDF documents.
 - **Text Submission for Indexing:** Allows submission of text directly for indexing.
-- **Search and Highlight:** Ability to search for words within documents and highlight occurrences.
-
+- **Search and Highlight:** Ability to search for words within documents and highlight occurrences. The API uses embeddings to find and highlight the most relevant parts of the text.
 ## Getting Started
 
 ## Installation
@@ -39,8 +38,13 @@ Alternatively, you can create a Docker container for the API:
 
 ```bash
 docker build -t myapi .
-docker run -d --name myfastapi -p 8080:8080 myapi
+docker run -d --name myfastapi -p 8000:8000 myapi
 ```
+
+## API Documentation
+
+You can view the API documentation by navigating to the directory and opening the `index.html` file in your web browser.
+
 
 ## API Endpoints
 
