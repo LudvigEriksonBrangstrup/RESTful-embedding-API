@@ -40,7 +40,7 @@ Alternatively, you can create a Docker container for the API:
 ```bash
 docker build -t myapi .
 docker run -d --name myfastapi -p 8080:8080 myapi
-
+```
 
 ## API Endpoints
 
