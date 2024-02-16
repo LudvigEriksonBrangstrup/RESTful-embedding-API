@@ -567,7 +567,7 @@ def highlight_text(filename: str = Query(..., description="The name of the file 
 
     combined_indexes = get_combined_indexes(results)
 
-    print("combined indexes: ", combined_indexes.__sizeof__())
+    #print("combined indexes: ", combined_indexes.__sizeof__())
 
     if combined_indexes.__sizeof__() == 3:
         raise HTTPException(status_code=400, detail="bad searchword")
