@@ -253,7 +253,7 @@ def get_documents():
     return {"documents": document_list}
 
 
-@app.post("/upload/")
+@app.post("/file_upload/")
 async def create_upload_file(file: UploadFile):
     if file:
         document = file.file

@@ -142,7 +142,7 @@
             try {
                 var formData = new FormData();
                 formData.append('file', file);
-                var response = await fetch('http://localhost:8000/upload/', {
+                var response = await fetch('http://localhost:8000/file_upload/', {
                     method: 'POST',
                     body: formData
                 });
