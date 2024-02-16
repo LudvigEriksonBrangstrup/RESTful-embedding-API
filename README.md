@@ -33,6 +33,47 @@ Run the API server using
 python main.py
 ```
 
+## API Endpoints
+
+### Upload Document
+- **Endpoint:** `/file_upload/`
+- **Method:** `POST`
+- **Description:** Uploads a document (text or PDF).
+- **Request:** Multipart form data with the file.
+- **Curl Example:** 
+
+```bash
+curl -X POST -F 'file=@examplefile.pdf' http://localhost:8000/file_upload/
+```
+
+
+### Upload Text for Indexing
+- **Endpoint:** `/text_upload/`
+- **Method:** `POST`
+- **Description:** Submits text for indexing.
+- **Request Body:** `{ "text": "your text here" }`
+
+### Search and Highlight
+- **Endpoint:** `/highlight/`
+- **Method:** `GET`
+- **Description:** Searches for a word in the specified document and highlights occurrences.
+- **Parameters:** `filename` (the file to search), `search_word` (the word to search for).
+
+### Get Document List
+- **Endpoint:** `/documents/`
+- **Method:** `GET`
+- **Description:** Retrieves a list of all documents available in the system.
+
+## Error Handling
+
+The API uses standard HTTP responses to indicate the success or failure of an API request:
+
+- `200 OK` - The request was successful.
+- `400 Bad Request` - There was a problem with the request.
+- `404 Not Found` - The requested resource was not found.
+- `500 Internal Server Error` - There was a problem on the server.
+
+
 
 
 
