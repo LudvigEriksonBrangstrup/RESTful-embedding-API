@@ -25,6 +25,26 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 def initialize_components(chunk_size=120, chunk_overlap=20):
+    """
+    Initializes the components needed for the application.
+
+    This function initializes the embedding model and tokenizer, service context, 
+    database client and collection, vector store, storage context, and text splitter.
+
+    Parameters:
+    chunk_size (int): The size of the chunks that the text should be split into. Default is 120.
+    chunk_overlap (int): The number of characters that should overlap between chunks. Default is 20.
+
+    Returns:
+    tuple: A tuple containing the initialized components: 
+    - embed_model_tokenizer (AutoTokenizer): The tokenizer for the embedding model.
+    - embed_model (HuggingFaceEmbedding): The embedding model.
+    - service_context (ServiceContext): The service context.
+    - text_splitter (RecursiveCharacterTextSplitter): The text splitter.
+    - chroma_collection (Collection): The database collection.
+    - storage_context (StorageContext): The storage context.
+    - vector_store (ChromaVectorStore): The vector store.
+    """
     model_name = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
 
     embed_model_tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -42,6 +62,15 @@ def initialize_components(chunk_size=120, chunk_overlap=20):
     return embed_model_tokenizer, embed_model, service_context, text_splitter, chroma_collection, storage_context, vector_store
 
 def delete_all_data(input_chroma_collection):
+    """
+    Deletes all data from the given Chroma collection and the document folders.
+
+    This function retrieves all IDs from the given Chroma collection and deletes the corresponding documents.
+    It also deletes all files and subdirectories in the 'highlighted_documents' and 'documents' directories.
+
+    Parameters:
+    input_chroma_collection (Collection): The Chroma collection to delete data from.
+    """
     all_ids = input_chroma_collection.peek()['ids']
     input_chroma_collection.delete(all_ids)
 
@@ -69,6 +98,23 @@ def get_unique_document_names(input_chroma_collection):
 
 
 def index_document(document_path, embed_model, input_storage_context, input_text_splitter, input_service_context):
+    """
+    Indexes a document and stores it in the cromadb for later retrieval.
+
+    This function reads a document from the specified path, splits it into chunks, 
+    generates embeddings for each chunk using the provided embedding model, and stores 
+    the embeddings in the provided storage context for later retrieval.
+
+    Parameters:
+    document_path (str): The path to the document to index.
+    embed_model (HuggingFaceEmbedding): The embedding model to use to generate embeddings.
+    input_storage_context (StorageContext): The storage context to store the embeddings in.
+    input_text_splitter (RecursiveCharacterTextSplitter): The text splitter to use to split the document into chunks.
+    input_service_context (ServiceContext): The service context that provides the language model and embedding model.
+
+    Returns:
+    None
+    """
     uploaded_document = SimpleDirectoryReader(input_files=[document_path]).load_data()
     VectorStoreIndex.from_documents(uploaded_document, service_context=input_service_context,storage_context=input_storage_context, show_progress=True, text_splitter = input_text_splitter )
     return
