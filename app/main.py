@@ -46,8 +46,8 @@ def get_unique_document_names(input_chroma_collection):
 
     unique_names = set()  # Use a set to ensure uniqueness
 
-    for item in all_ids['metadatas']:  # Assuming the result has an iterable of items
-        # Extract the document name from metadata and add it to the set
+    for item in all_ids['metadatas']: 
+        # TODO find a simpler way to get the file namea
         node_content = item['_node_content']
         content = json.loads(node_content)
         file_name = content.get('metadata').get('file_name')
@@ -109,7 +109,7 @@ def create_text_file(input_text, dirpath, filename=None):
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
 
-    # If filename is not provided, generate one
+    # If filename is not provided, generate a unique one
     if filename is None:
         existing_files = os.listdir(dirpath)
         counter = 1
@@ -129,6 +129,7 @@ def process_input_document(document, input_filename = None):
     dirpath="documents"
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
+    # If the input is a string
     if isinstance(document, str):
         return create_text_file(document, dirpath, input_filename)
     
@@ -142,32 +143,30 @@ def process_input_document(document, input_filename = None):
  
 
 
-def convert_to_html(filepath, combined_indexes, background_color="rgb(255, 204, 51)"):
-    # Read the content of your text file
+def highlight_text_in_html(filepath, combined_indexes, background_color="rgb(255, 204, 51)"):
+    
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
 
     html_content = ""
-    last_end_idx = 0
+    previous_end_idx = 0
 
     for start_idx, end_idx, page_number in combined_indexes:
-        # Add the text before the current highlighted section (if any)
-        html_content += content[last_end_idx:start_idx]
+        # Add non heiglighted text before the current highlighted section (if any)
+        html_content += content[previous_end_idx:start_idx]
         
-        # Add the highlighted section with HTML styling for background color
         style = f"background-color: {background_color}; font-weight: bold;"
         highlighted_section = f'<span style="{style}">{content[start_idx:end_idx]}</span>'
         html_content += highlighted_section
         
-        # Update the last processed index
-        last_end_idx = end_idx
+        previous_end_idx = end_idx
 
-    # Add any remaining text after the last highlighted section
-    html_content += content[last_end_idx:]
+    # Add any remaining non heiglighted text
+    html_content += content[previous_end_idx:]
 
     html_content = html_content.replace('\n', '<br>')
 
-    # Wrap the content in <html> and <body> tags
+    # Wraper
     html_content = f"""<!DOCTYPE html>
     <html>
     <head>
@@ -186,17 +185,15 @@ def convert_to_html(filepath, combined_indexes, background_color="rgb(255, 204, 
 
 
 def highlight_text_in_pdf(pdf_path, indexes):
-    # Open the PDF
     doc = fitz.open(pdf_path)
+
     output_pdf_path = "highlighted_documents"
     if not os.path.exists(output_pdf_path):
         os.makedirs(output_pdf_path)
     
-    # Extract the filename from pdf_path and join it with output_pdf_path
     filename = os.path.basename(pdf_path)
     filepath = os.path.join(output_pdf_path, filename)
     
-    # Loop over each tuple in the indexes list
     for start_idx, end_idx, page_number in indexes:
         # Access the specific page
         page = doc.load_page(page_number - 1)  # Page numbers are 0-indexed in PyMuPDF
@@ -248,10 +245,6 @@ app.add_middleware(
 class TextUpload(BaseModel):
     text: str
 
-class TextSearch(BaseModel):
-    filename: str
-    search_word: str
-
 class FileUpload(BaseModel):
     file: UploadFile
 
@@ -269,12 +262,11 @@ async def create_upload_file(file: UploadFile):
         raise HTTPException(status_code=400, detail="No file provided")
     if not file.content_type == "text/plain" and not file.content_type == "application/pdf":
         raise HTTPException(status_code=400, detail="Invalid document type. Please provide a PDF file, a TXT file")
-    print("type of fiel: ",file.content_type)
+
     document_path, filename = process_input_document(document, filename)
     document_list.append(filename)
-    print("document list: ", document_list)
+    
     index_document(document_path, embed_model, storage_context, text_splitter, service_context)
-   
     return {"status": "Text uploaded successfully", "filename": filename}
 
 
@@ -288,38 +280,46 @@ async def upload_text(payload: TextUpload):
    
     document_path, filename = process_input_document(text)
     document_list.append(filename)
-    #print("document list: ", document_list)
+
     index_document(document_path, embed_model, storage_context, text_splitter, service_context)
 
     return {"status": "Text uploaded successfully", "filename": filename}
 
 
-@app.post("/highlight/")
-def highlight_text(payload: TextSearch):
 
-    if not payload.filename or not payload.search_word:
+from fastapi import Query
+
+@app.get("/highlight/")
+def highlight_text(filename: str = Query(..., description="The name of the file to search"), search_word: str = Query(..., description="The word to search for")):
+    if not filename or not search_word:
         raise HTTPException(status_code=400, detail="Both filename and search_word must be provided")
-    if payload.filename not in document_list:
+    if filename not in document_list:
         raise HTTPException(status_code=400, detail="Document not found")
-    
-    filename = payload.filename
-    
+
+    # The rest of the logic remains the same
     index = VectorStoreIndex.from_vector_store(vector_store, service_context=service_context)
     document_path = os.path.join("documents", filename)
 
-    # TODO let you change the number of results
-    num_results = 4
-    results = retrieve_results(index, num_results, payload.search_word, filename)
+    num_results = 4  # This could be made configurable via query parameters as well
+    results = retrieve_results(index, num_results, search_word, filename)
+
+
+
     combined_indexes = get_combined_indexes(results)
 
+    print("combined indexes: ", combined_indexes.__sizeof__())
+
+    if combined_indexes.__sizeof__() == 3:
+        raise HTTPException(status_code=400, detail="bad searchword")
+    
+    
     if filename.lower().endswith('.pdf'):
         filepath = highlight_text_in_pdf(document_path, combined_indexes)
         return FileResponse(filepath, media_type='application/pdf', filename=os.path.basename(filepath))
-
     else:
-        filepath = convert_to_html(document_path, combined_indexes)
+        filepath = highlight_text_in_html(document_path, combined_indexes)
         return FileResponse(filepath, media_type='text/html')
 
     
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8080)
+    uvicorn.run(app, host="localhost", port=8000)

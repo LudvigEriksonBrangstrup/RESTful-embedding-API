@@ -89,93 +89,101 @@
     </div>
 
     <script>
-        // Fetch the list of documents when the page loads
-        // Fetch the list of documents
+        // Function to fetch and display the list of documents
         async function fetchDocuments() {
-            const response = await fetch('http://localhost:8080/documents/');
-            const data = await response.json();
-            const select = document.getElementById('document_name');
-            // Clear the current options
-            select.innerHTML = '';
-            for (const document_name of data.documents) {
-                const option = document.createElement('option');
-                option.value = option.text = document_name;
-                select.add(option);
+            try {
+                const response = await fetch('http://localhost:8000/documents/');
+                const data = await response.json();
+                const select = document.getElementById('document_name');
+                select.innerHTML = ''; // Clear existing options
+                data.documents.forEach(function(document_name) {
+                    var option = document.createElement('option');
+                    option.value = option.text = document_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to fetch documents:', error);
             }
         }
 
-        // Fetch the list of documents when the page loads
-        window.onload = fetchDocuments;
-
-
-
-        document.getElementById('textUploadForm').onsubmit = async function(event) {
-            event.preventDefault(); // Prevent the form from submitting the traditional way
-            const text = document.getElementById('text').value;
-            const response = await fetch('http://localhost:8080/text_upload/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({text})
-            });
-            const result = await response.json();
-            await fetchDocuments();
-            console.log(result);  // Log the response from the /upload/ endpoint
+        // Initialize document fetch on window load
+        window.onload = function() {
+            fetchDocuments();
         };
-        
 
-        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent the form from submitting the traditional way
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
-            if (file) {
-                // If a file was selected, send it as form data
-                const formData = new FormData();
+        // Handle text upload form submission
+        document.getElementById('textUploadForm').onsubmit = async function(event) {
+            event.preventDefault();
+            try {
+                var text = document.getElementById('text').value;
+                var response = await fetch('http://localhost:8000/text_upload/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({text: text})
+                });
+                var result = await response.json();
+                console.log(result);
+                await fetchDocuments(); // Refresh the document list
+            } catch (error) {
+                console.error('Failed to upload text:', error);
+            }
+        };
+
+        // Handle file upload form submission
+        document.getElementById('uploadForm').onsubmit = async function(event) {
+            event.preventDefault();
+            var fileInput = document.getElementById('file');
+            var file = fileInput.files[0];
+            if (!file) {
+                alert('No file selected');
+                return;
+            }
+
+            try {
+                var formData = new FormData();
                 formData.append('file', file);
-                const response = await fetch('http://localhost:8080/upload/', {
+                var response = await fetch('http://localhost:8000/upload/', {
                     method: 'POST',
                     body: formData
                 });
-                const result = await response.json();
-                //console.log(result);  // Log the response from the /upload/ endpoint
-                fetchDocuments();
-            } else {
-                alert('No file selected');
+                var result = await response.json();
+                console.log(result);
+                fetchDocuments(); // Refresh the document list
+            } catch (error) {
+                console.error('Failed to upload file:', error);
             }
-        });
-        
-        document.getElementById('highlightForm').onsubmit = async function(event) {
-            event.preventDefault(); // Prevent the form from submitting the traditional way
-            const filename = document.getElementById('document_name').value;
-            const search_word = document.getElementById('search_word').value;
-            const response = await fetch('http://localhost:8080/highlight/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filename: filename, search_word: search_word })
-            });
-
-            const contentType = response.headers.get('content-type');
-            if (contentType === 'application/pdf') {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a); // we need to append the element to the dom -> invisible
-                a.click();
-                a.remove();  //afterwards we remove the element again
-            } else  {
-                const data = await response.text();
-                document.getElementById('result').innerHTML = data;
-            } 
         };
 
-        
+        // Handle highlight form submission
+        document.getElementById('highlightForm').onsubmit = async function(event) {
+            event.preventDefault();
+            var filename = document.getElementById('document_name').value;
+            var search_word = document.getElementById('search_word').value;
+            
+            try {
+                var url = new URL('http://localhost:8000/highlight/');
+                url.searchParams.append('filename', filename);
+                url.searchParams.append('search_word', search_word);
+
+                var response = await fetch(url, { method: 'GET' });
+                var contentType = response.headers.get('content-type');
+                if (contentType && contentType.indexOf('application/pdf') !== -1) {
+                    var blob = await response.blob();
+                    var downloadUrl = window.URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    var data = await response.text();
+                    document.getElementById('result').innerHTML = data;
+                }
+            } catch (error) {
+                console.error('Failed to highlight text:', error);
+            }
+        };
     </script>
 </body>
 </html>
-
-
