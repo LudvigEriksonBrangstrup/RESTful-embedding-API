@@ -3,6 +3,7 @@ import os
 import re
 import tempfile
 import uuid
+import shutil
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +41,17 @@ def initialize_components(chunk_size=120, chunk_overlap=20):
      
     return embed_model_tokenizer, embed_model, service_context, text_splitter, chroma_collection, storage_context, vector_store
 
+def delete_all_data(input_chroma_collection):
+    all_ids = input_chroma_collection.peek()['ids']
+    input_chroma_collection.delete(all_ids)
+
+    directories = ['highlighted_documents', 'documents']
+    for directory in directories:
+        try:
+            shutil.rmtree(directory)
+        except Exception as e:
+            print(f'Failed to delete {directory}. Reason: {e}')
+    return
 
 def get_unique_document_names(input_chroma_collection):
     all_ids = input_chroma_collection.get()
@@ -271,7 +283,7 @@ async def create_upload_file(file: UploadFile):
 
 class TextUpload(BaseModel):
     text: str
-    
+
 @app.post("/text_upload/")
 async def upload_text(payload: TextUpload):
     print("starting upload")
@@ -322,6 +334,11 @@ def highlight_text(filename: str = Query(..., description="The name of the file 
         filepath = highlight_text_in_html(document_path, combined_indexes)
         return FileResponse(filepath, media_type='text/html')
 
+@app.delete("/clear_database/")
+async def clear_database():
+    delete_all_data(chroma_collection)
+    document_list.clear()
+    return {"message": "Database cleared successfully"}
     
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)

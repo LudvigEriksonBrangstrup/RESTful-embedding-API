@@ -69,10 +69,19 @@ curl "http://localhost:8000/highlight/?filename=your_filename&search_word=your_s
 ### Get Documents
 - **Endpoint:** `/documents/`
 - **Method:** `GET`
-- **Description:** Returns a list of all available documents.
+- **Description:** Returns a list of all available documents for querying.
 - **Curl Example:** 
 ```bash
 curl http://localhost:8000/documents/
+```
+
+### Clear Database
+- **Endpoint:** `/clear_database/`
+- **Method:** `DELETE`
+- **Description:** Clears all data from the database and document folders.
+- **Curl Example:** 
+```bash
+curl -X DELETE http://localhost:8000/clear_database/
 ```
 
 ## Error Handling
