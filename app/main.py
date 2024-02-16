@@ -328,6 +328,9 @@ def highlight_text_in_html(filepath, combined_indexes, background_color="rgb(255
     Returns:
     str: The path to the new HTML document with the highlighted text.
     """
+    output_pdf_path = "highlighted_documents"
+    if not os.path.exists(output_pdf_path):
+        os.makedirs(output_pdf_path)
     
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
@@ -359,12 +362,12 @@ def highlight_text_in_html(filepath, combined_indexes, background_color="rgb(255
     <body>{html_content}</body>
     </html>"""
 
-    output_pdf_path = 'highlighted_documents/highlighted_text.html'
+    output_HTML_text_path = 'highlighted_documents/highlighted_text.html'
 
-    with open(output_pdf_path, 'w') as f:
+    with open(output_HTML_text_path, 'w') as f:
             f.write(html_content)
 
-    return output_pdf_path
+    return output_HTML_text_path
 
 
 
