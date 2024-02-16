@@ -33,6 +33,15 @@ Run the API server using
 python main.py
 ```
 
+## Docker Deployment
+
+Alternatively, you can create a Docker container for the API:
+
+```bash
+docker build -t myapi .
+docker run -d --name myfastapi -p 8080:8080 myapi
+
+
 ## API Endpoints
 
 ### Upload Document
@@ -93,28 +102,4 @@ The API uses standard HTTP responses to indicate the success or failure of an AP
 - `404 Not Found` - The requested resource was not found.
 - `500 Internal Server Error` - There was a problem on the server.
 
-
-
-
-
-### Prerequisites
-
-Before running the API, ensure you have the following dependencies installed:
-
-- FastAPI
-- Uvicorn
-- PyMuPDF (fitz)
-- Transformers
-- LLaMA Index and its dependencies
-- ChromaDB for document storage and indexing
-
-### Initialization
-
-Initialize the components required for embedding, storage, and text splitting:
-
-```python
-embed_model_tokenizer, embed_model, service_context, text_splitter, chroma_collection, storage_context, vector_store = initialize_components()
-```
-
-## Running the API
 
