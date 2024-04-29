@@ -1,3 +1,9 @@
 app/documents*
 app/highlighted_documents*
 app/database*
+PDFs
+PDFs_test
+database
+highlighted_documents
+scraper.ipynb
+project1.R

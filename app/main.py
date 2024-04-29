@@ -292,7 +292,8 @@ def create_text_file(input_text, dirpath, filename=None):
 
 
 def process_input_document(document, input_filename = None):
-    dirpath="documents"
+    #dirpath="documents"
+    dirpath = "PDFs_test"
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
     # If the input is a string
@@ -465,6 +466,27 @@ def get_documents():
     return {"documents": document_list}
 
 
+@app.post("/index_all/")
+async def index_all_documents():
+    """
+    Indexes all documents in the 'PDFs_test' directory.
+
+    This function is a FastAPI endpoint that handles POST requests to the "/index_all/" URL.
+    It iterates over all the files in the 'PDFs_test' directory and calls `index_document()` on each one.
+
+    Returns:
+    dict: A dictionary with a status message.
+    """
+    directory = 'PDFs_test'
+    count = 0
+    size = len(os.listdir(directory))
+    for filename in os.listdir(directory):
+        print("indexing document number ", count, " of ", size)
+        count += 1
+        document_path = os.path.join(directory, filename)
+        index_document(document_path, storage_context, text_splitter, service_context)
+
+    return {"status": "All documents indexed successfully"}
 
 @app.post("/file_upload/")
 async def create_upload_file(file: UploadFile):
@@ -529,12 +551,19 @@ async def upload_text(payload: TextUpload):
 
     return {"status": "Text uploaded successfully", "filename": filename}
 
+"""
+class HighlightRequest(BaseModel):
+    filename: str
+    search_word: str
 
-
-
+@app.post("/highlight/")
+def highlight_text(request: HighlightRequest):
+    filename = request.filename
+    search_word = request.search_word    
+"""
 
 @app.get("/highlight/")
-def highlight_text(filename: str = Query(..., description="The name of the file to search"), search_word: str = Query(..., description="The word to search for")):
+def highlight_text(filename: str = Query(..., description="The name of the file to search"), search_word: str = Query(..., description="The word to search for")):    
     """
     Highlights relevant parts based on search words in a document and returns the document.
 
@@ -552,14 +581,14 @@ def highlight_text(filename: str = Query(..., description="The name of the file 
     Returns:
     FileResponse: A FileResponse object containing the document with the highlighted text.
     """    
-
     if not filename or not search_word:
         raise HTTPException(status_code=400, detail="Both filename and search_word must be provided")
     if filename not in document_list:
         raise HTTPException(status_code=400, detail="Document not found")
 
     index = VectorStoreIndex.from_vector_store(vector_store, service_context=service_context)
-    document_path = os.path.join("documents", filename)
+    #document_path = os.path.join("documents", filename)
+    document_path = os.path.join("PDFs_test", filename)
 
     num_results = 4  # TODO make configurable via query parameters
     results = retrieve_results(index, num_results, search_word, filename)
@@ -568,7 +597,6 @@ def highlight_text(filename: str = Query(..., description="The name of the file 
         improved_query = improve_query_with_agent(results, search_word, model_sw3, tokenizer_sw3, device)
         results = retrieve_results(index, num_results, improved_query, filename)
         
-
     combined_indexes = get_combined_indexes(results)
 
     #print("combined indexes: ", combined_indexes.__sizeof__())
