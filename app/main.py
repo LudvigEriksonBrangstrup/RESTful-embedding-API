@@ -590,7 +590,7 @@ def highlight_text(filename: str = Query(..., description="The name of the file 
     #document_path = os.path.join("documents", filename)
     document_path = os.path.join("PDFs_test", filename)
 
-    num_results = 4  # TODO make configurable via query parameters
+    num_results = 1  # TODO make configurable via query parameters
     results = retrieve_results(index, num_results, search_word, filename)
 
     if use_agent:
